@@ -1,6 +1,6 @@
 # See docs/CMake.html for instructions about how to build LLVM with CMake.
 
-cmake_minimum_required(VERSION 2.8.7)
+cmake_minimum_required(VERSION 3.5)
 
 set(LLVM_INSTALL_TOOLCHAIN_ONLY ON)
 
@@ -11,6 +11,10 @@ endif()
 
 if(POLICY CMP0022)
   cmake_policy(SET CMP0022 NEW) # automatic when 2.8.12 is required
+endif()
+
+if(POLICY CMP0075)
+  cmake_policy(SET CMP0075 OLD)
 endif()
 
 if (POLICY CMP0051)
@@ -336,15 +340,16 @@ include(HandleLLVMOptions)
 # FIXME: We should support systems with only Python 3, but that requires work
 # on LLDB.
 set(Python_ADDITIONAL_VERSIONS 2.7)
-include(FindPythonInterp)
-if( NOT PYTHONINTERP_FOUND )
+# include(FindPythonInterp)
+find_package (Python COMPONENTS Interpreter Development)
+if( NOT Python_Interpreter_FOUND )
   message(FATAL_ERROR
 "Unable to find Python interpreter, required for builds and testing.
 
 Please install Python or specify the PYTHON_EXECUTABLE CMake variable.")
 endif()
 
-if( ${PYTHON_VERSION_STRING} VERSION_LESS 2.7 )
+if( ${Python_VERSION} VERSION_LESS 2.7 )
   message(FATAL_ERROR "Python 2.7 or newer is required")
 endif()
 
@@ -374,7 +379,7 @@ endif (LLVM_USE_OPROFILE)
 
 message(STATUS "Constructing LLVMBuild project information")
 execute_process(
-  COMMAND ${PYTHON_EXECUTABLE} ${LLVMBUILDTOOL}
+  COMMAND ${Python_EXECUTABLE} ${LLVMBUILDTOOL}
             --native-target "${LLVM_NATIVE_ARCH}"
             --enable-targets "${LLVM_TARGETS_TO_BUILD}"
             --enable-optional-components "${LLVMOPTIONALCOMPONENTS}"
